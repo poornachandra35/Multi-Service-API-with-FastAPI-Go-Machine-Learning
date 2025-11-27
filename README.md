@@ -1,7 +1,6 @@
 # Multi-Service-API-with-FastAPI-Go-Machine-Learning
 A high-performance multi-service backend combining FastAPI, Go, and Python ML models. Built with a modern microservice architecture supporting ultra-fast inference, scalable design, and production-ready APIs.
 
-Nice — thanks for the screenshot. I updated the README to match your actual repo layout (no Go). Below is a **copy–paste ready `README.md`** tailored to the structure you provided.
 
 ---
 
@@ -223,4 +222,4 @@ chore: bump requirements
 This project is licensed under the **MIT License** — see `LICENSE` file.
 
 
-T
+
