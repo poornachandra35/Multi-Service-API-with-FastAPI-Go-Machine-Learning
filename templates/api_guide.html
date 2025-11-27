@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>API Guide — Multi-Service Platform (FastAPI)</title>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<style>
+  :root{
+    --bg1:#0d1117; --bg2:#161b22; --card:#1c2128; --muted:#9da5b4;
+    --accent:#4fd1c5; --accent2:#58a6ff; --border:#30363d; --light:#e6edf3;
+    --mono-bg:#0d1117; --code-text:#f0f6fc;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--light); display:flex; min-height:100vh;
+  }
+
+  /* Sidebar */
+  .sidebar{width:300px;background:#0f1621;padding:24px;height:100vh;border-right:1px solid var(--border);position:fixed;overflow:auto}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+  .logo{width:46px;height:46px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#071017;font-size:16px}
+  .sidebar h2{margin:0;margin-bottom:14px;font-size:18px;color:var(--accent)}
+  .sidebar a{display:block;margin:10px 0;color:var(--muted);text-decoration:none;font-size:14px}
+  .sidebar a:hover{color:var(--accent2)}
+  .small{font-size:12px;color:#7f8b95;margin-top:8px}
+
+  /* Content */
+  .content{margin-left:340px;padding:28px;width:calc(100% - 340px)}
+  header.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  header.hdr h1{margin:0;color:var(--accent);font-size:22px}
+  header.hdr p.sub{margin:0;color:var(--muted);font-size:13px}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .full{grid-column:1/-1}
+
+  .card{background:var(--card);padding:18px;border-radius:10px;border:1px solid var(--border);box-shadow:0 6px 22px rgba(2,6,23,0.45)}
+  h2.section-title{color:var(--accent);margin:0 0 8px 0}
+  p.lead{color:var(--muted);margin-top:6px;margin-bottom:12px;font-size:14px}
+
+  .route-list{display:flex;flex-direction:column;gap:10px}
+  .route{background:#161b22;padding:12px;border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .route .left{display:flex;gap:12px;align-items:center}
+  .method{font-weight:800;color:var(--accent);font-size:13px}
+  .path{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;color:var(--code-text);background:transparent;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)}
+  .tag{font-size:12px;color:#9cdcfe;background:transparent;padding:6px;border-radius:6px}
+
+  .code{position:relative;background:var(--mono-bg);border-radius:8px;padding:14px;border:1px solid var(--border);overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;font-size:13px;color:var(--code-text);line-height:1.45;white-space:pre-wrap}
+  .code pre{margin:0}
+  .copy-btn{position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);color:var(--light);padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer}
+  .copy-btn:active{transform:translateY(1px)}
+
+  table.meta{width:100%;border-collapse:collapse;margin-top:8px}
+  table.meta td,table.meta th{padding:6px 8px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px;color:var(--muted)}
+  table.meta th{text-align:left;color:var(--light);font-weight:600}
+
+  .response-table, .error-table {width:100%;border-collapse:collapse;margin-top:8px}
+  .response-table th,.response-table td, .error-table th, .error-table td {padding:8px;border:1px solid rgba(255,255,255,0.04);font-size:13px;color:var(--muted);text-align:left}
+  .response-table th, .error-table th {background:rgba(255,255,255,0.02);color:var(--light);font-weight:700}
+
+  .service-details{display:flex;flex-direction:column;gap:10px}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(79,209,197,0.08);color:var(--accent);font-weight:600;font-size:12px;border:1px solid rgba(79,209,197,0.06)}
+
+  .top-actions{display:flex;gap:12px;align-items:center}
+  .pdf-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#071017;padding:8px 12px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+  .pdf-btn:active{transform:translateY(1px)}
+  .small-muted{font-size:12px;color:var(--muted)}
+
+  footer{margin-top:20px;color:var(--muted);font-size:13px}
+
+  /* SVG flow containers */
+  .flow-svg{width:100%;height:120px;background:transparent;display:block;margin-top:10px}
+
+  @media (max-width:980px){
+    .grid{grid-template-columns:1fr}
+    .content{padding:18px;margin-left:0;width:100%}
+    .sidebar{display:none}
+  }
+
+  /* Print styles for PDF download */
+  @media print {
+    body {background: #ffffff; color: #000000;}
+    .sidebar {display:none !important;}
+    .content {margin:0;padding:12px;width:100%;}
+    .card {box-shadow:none;border:none;background:transparent;padding:6px;}
+    .code .copy-btn {display:none !important;}
+    a {color: #000; text-decoration: underline;}
+  }
+</style>
+</head>
+<body>
+
+  <aside class="sidebar" aria-label="Sidebar">
+    <div class="brand">
+      <div class="logo">API</div>
+      <div>
+        <strong style="color:var(--light)">Multi-Service Platform</strong>
+        <div class="small">FastAPI • ML • Ready-to-integrate</div>
+      </div>
+    </div>
+
+    <h2>📘 Documentation</h2>
+    <a href="#overview">Overview</a>
+    <a href="#modules">Modules (detailed)</a>
+    <a href="#routes">Routes & Quick Reference</a>
+    <a href="#integration">Integration Snippets</a>
+    <a href="#stock">Stock Predictor (Deep Dive)</a>
+    <a href="#get-started">Get Started (GitHub)</a>
+    <a href="#errors">Error Reference</a>
+    <a href="#faq">FAQ & Best Practices</a>
+
+    <div style="margin-top:18px" class="small">Version: <strong>1.0</strong> • Author: Poornachandra</div>
+  </aside>
+
+  <main class="content">
+    <header class="hdr">
+      <div>
+        <h1>📌 Multi-Service API Platform — Developer Guide</h1>
+        <p class="sub">Modular FastAPI services: CSV Analyzer, Sentiment Analyzer, Number Series Predictor, Animal Classifier (vision), Stock Predictor (ANN). Use this guide to integrate, run, and extend the APIs.</p>
+      </div>
+
+      <div class="top-actions" aria-hidden="false">
+        <!-- PDF download button placed top-right (replaces previous Entrypoint display) -->
+        <button class="pdf-btn" id="downloadPdfBtn" title="Download documentation as PDF (Print)">📄 Download PDF</button>
+        <div class="small-muted">Ready for Integration</div>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="card full">
+      <h2 class="section-title">Overview</h2>
+      <p class="lead">This repository provides a compact, modular FastAPI application that exposes multiple developer-friendly services. Each module lives under <code>modules/</code> and registers its own router in <code>main.py</code>. The design favors clear separation of concerns, lightweight inference, and easy integration from other projects via HTTP calls.</p>
+
+      <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+        <div style="min-width:300px" class="card">
+          <h3 style="margin:0">Architecture</h3>
+          <p style="color:var(--muted);margin-top:8px;font-size:13px">FastAPI app → Routers per feature → Optional ML models under <code>modules/stock_predictor/model/</code>. Designed for both local development and cloud hosting (Render, Heroku, any cloud VM).</p>
+          <table class="meta">
+            <tr><th>Framework</th><td>FastAPI + Uvicorn</td></tr>
+            <tr><th>ML libs</th><td>TensorFlow (for stock), Transformers, scikit-learn</td></tr>
+            <tr><th>Integration</th><td>HTTP REST endpoints (JSON & multipart)</td></tr>
+          </table>
+        </div>
+
+        <div style="min-width:300px" class="card">
+          <h3 style="margin:0">Design principles</h3>
+          <ul style="color:var(--muted);margin-top:8px">
+            <li>Small, testable modules (single responsibility)</li>
+            <li>Load ML models at startup for fast inference</li>
+            <li>Provide clear validation and helpful error messages</li>
+            <li>Offer language-agnostic integration examples</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULES -->
+    <section id="modules" class="card" style="margin-top:14px">
+      <h2 class="section-title">Modules — Detailed</h2>
+      <p class="lead">Detail for each module: purpose, internal flow, expected inputs/outputs, error conditions, response schemas, and small SVG flow diagrams.</p>
+
+      <div class="service-details" style="margin-top:8px">
+
+        <!-- CSV ANALYZER -->
+        <div class="card">
+          <h3 style="margin:0;color:var(--accent)">CSV Analyzer</h3>
+          <p style="color:var(--muted);margin-top:8px">Purpose: Upload a CSV and receive a structured JSON summary. Useful for quick EDA, data validation, and light cleaning operations from any client.</p>
+
+          <strong>Internal flow</strong>
+          <ol style="color:var(--muted);margin-top:8px">
+            <li>Endpoint expects multipart/form-data with a file field <code>file</code>.</li>
+            <li>Server loads file with <code>pandas.read_csv()</code> into a DataFrame.</li>
+            <li>Computes <code>head()</code>, <code>dtypes</code>, descriptive stats, null counts, unique counts.</li>
+            <li>Optionally runs simple cleaning suggestions (drop constant columns, impute nulls) and returns actions.</li>
+          </ol>
+
+          <strong>Input</strong>: multipart file field named <code>file</code> (CSV).<br>
+          <strong>Output</strong>: JSON with fields: <code>preview</code>, <code>summary</code>, <code>missing</code>, <code>suggested_cleaning</code>.
+
+          <!-- Response schema table -->
+          <h4 style="margin-top:12px;color:var(--accent)">Response Schema</h4>
+          <table class="response-table" aria-describedby="csv-response-schema">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>preview</td><td>array[object]</td><td>First N rows (as objects)</td></tr>
+              <tr><td>summary</td><td>object</td><td>Descriptive stats per numeric column (mean, std, min, max)</td></tr>
+              <tr><td>missing</td><td>object</td><td>Null counts per column</td></tr>
+              <tr><td>suggested_cleaning</td><td>array[string]</td><td>List of suggested cleaning actions</td></tr>
+            </tbody>
+          </table>
+
+          <!-- SVG flow -->
+          <svg class="flow-svg" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#4fd1c5"></path>
+              </marker>
+            </defs>
+            <rect x="10" y="20" rx="6" ry="6" width="140" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="30" y="50" fill="#9da5b4" font-size="12">Client Upload</text>
+            <line x1="150" y1="44" x2="260" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow)"></line>
+            <rect x="260" y="12" rx="6" ry="6" width="160" height="72" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="280" y="40" fill="#9da5b4" font-size="12">pandas.read_csv()</text>
+            <line x1="420" y1="44" x2="530" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow)"></line>
+            <rect x="530" y="20" rx="6" ry="6" width="220" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="550" y="50" fill="#9da5b4" font-size="12">Return JSON summary</text>
+          </svg>
+        </div>
+
+        <!-- SENTIMENT ANALYZER -->
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0;color:var(--accent)">Sentiment Analyzer</h3>
+          <p style="color:var(--muted);margin-top:8px">Purpose: Classify the sentiment of text using a transformer model or a lightweight classifier depending on deployment constraints.</p>
+
+          <strong>Internal flow</strong>
+          <ol style="color:var(--muted);margin-top:8px">
+            <li>Accepts JSON body <code>{ "text": "..." }</code>.</li>
+            <li>Tokenize using the selected tokenizer, run the model, apply softmax to get probabilities.</li>
+            <li>Return label and score; optionally include token-level attention/highlights if implemented.</li>
+          </ol>
+
+          <strong>Input</strong>: JSON <code>{"text": "I love this"}</code>.<br>
+          <strong>Output</strong>: <code>{"label":"positive","score":0.95}</code> or detailed scores.
+
+          <!-- Response schema table -->
+          <h4 style="margin-top:12px;color:var(--accent)">Response Schema</h4>
+          <table class="response-table" aria-describedby="sentiment-response-schema">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>label</td><td>string</td><td>Predicted sentiment label (positive/neutral/negative)</td></tr>
+              <tr><td>score</td><td>float</td><td>Confidence score for the label (0-1)</td></tr>
+              <tr><td>scores</td><td>object (optional)</td><td>Per-label probabilities</td></tr>
+            </tbody>
+          </table>
+
+          <!-- SVG flow -->
+          <svg class="flow-svg" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><marker id="arrow2" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4fd1c5"></path></marker></defs>
+            <rect x="10" y="20" rx="6" ry="6" width="160" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="30" y="50" fill="#9da5b4" font-size="12">Client JSON</text>
+            <line x1="170" y1="44" x2="300" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow2)"></line>
+            <rect x="300" y="12" rx="6" ry="6" width="260" height="72" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="320" y="40" fill="#9da5b4" font-size="12">Tokenizer → Model → Softmax</text>
+            <line x1="560" y1="44" x2="700" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow2)"></line>
+            <rect x="700" y="20" rx="6" ry="6" width="80" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="708" y="50" fill="#9da5b4" font-size="12">Response</text>
+          </svg>
+        </div>
+
+        <!-- SERIES PREDICTOR -->
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0;color:var(--accent)">Number Series Predictor</h3>
+          <p style="color:var(--muted);margin-top:8px">Purpose: Detect simple numerical patterns (arithmetic, geometric, polynomial) and predict the next term(s). Good for puzzles, basic forecasting, or educational demos.</p>
+
+          <strong>Internal flow</strong>
+          <ol style="color:var(--muted);margin-top:8px">
+            <li>Receive JSON <code>{ "series": [ ... ] }</code>.</li>
+            <li>Run heuristic checks: constant diff (arithmetic), constant ratio (geometric), polynomial fit, repeating patterns.</li>
+            <li>Return detected pattern, next term(s), and an explanation string.</li>
+          </ol>
+
+          <strong>Input</strong>: numeric array (len ≥ 3).<br>
+          <strong>Output</strong>: <code>{"detected":"arithmetic","next":5,"rule":"+1 each step"}</code>.
+
+          <!-- Response schema -->
+          <h4 style="margin-top:12px;color:var(--accent)">Response Schema</h4>
+          <table class="response-table" aria-describedby="series-response-schema">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>detected</td><td>string</td><td>Detected rule (arithmetic, geometric, polynomial, repeating)</td></tr>
+              <tr><td>next</td><td>number</td><td>Predicted next term</td></tr>
+              <tr><td>rule</td><td>string</td><td>Human-readable explanation</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ANIMAL CLASSIFIER -->
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0;color:var(--accent)">Animal Classifier (Image)</h3>
+          <p style="color:var(--muted);margin-top:8px">Purpose: Classify uploaded images into animal classes. Uses PIL for preprocessing and a model for inference.</p>
+
+          <strong>Internal flow</strong>
+          <ol style="color:var(--muted);margin-top:8px">
+            <li>Client uploads image via multipart/form-data.</li>
+            <li>Server resizes/crops, normalizes pixel values, converts to model tensor.</li>
+            <li>Model runs inference and returns top-k labels with confidence.</li>
+          </ol>
+
+          <strong>Input</strong>: multipart file field <code>image</code>.<br>
+          <strong>Output</strong>: <code>{"label":"dog","score":0.98,"top_k":[...]}</code>.
+
+          <h4 style="margin-top:12px;color:var(--accent)">Response Schema</h4>
+          <table class="response-table" aria-describedby="animal-response-schema">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>label</td><td>string</td><td>Top predicted class</td></tr>
+              <tr><td>score</td><td>float</td><td>Confidence for top class</td></tr>
+              <tr><td>top_k</td><td>array[object]</td><td>Optional list of top-k {label, score}</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- STOCK PREDICTOR -->
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0;color:var(--accent)">Stock Predictor (ANN)</h3>
+          <p style="color:var(--muted);margin-top:8px">Purpose: Predict the next day's close using a pre-trained ANN. The model expects 5 previous close prices by default, uses min-max normalization stored in <code>min.npy</code> and <code>max.npy</code>, and returns a denormalized price.</p>
+
+          <strong>Model expectations & flow</strong>
+          <ol style="color:var(--muted);margin-top:8px">
+            <li>Model files must be under <code>modules/stock_predictor/model/</code>.</li>
+            <li>On startup, <code>model_loader.py</code> should load <code>stock_ann.h5</code> and scaler values with <code>np.load</code>.</li>
+            <li>Input normalization: <code>norm = (prices - min) / (max - min)</code>.</li>
+            <li>Model predicts on reshaped input <code>(1,5)</code>. Denormalize result with <code>pred*(max-min)+min</code>.</li>
+          </ol>
+
+          <strong>Validation</strong>: If input length ≠ 5, return HTTP 400 with helpful message. Check input ranges against training scale to avoid meaningless predictions.
+
+          <h4 style="margin-top:12px;color:var(--accent)">Response Schema</h4>
+          <table class="response-table" aria-describedby="stock-response-schema">
+            <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>next_day_prediction</td><td>float</td><td>Predicted next day closing price (denormalized)</td></tr>
+            </tbody>
+          </table>
+
+          <!-- small SVG flow -->
+          <svg class="flow-svg" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><marker id="arrow3" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4fd1c5"></path></marker></defs>
+            <rect x="10" y="20" rx="6" ry="6" width="150" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="30" y="50" fill="#9da5b4" font-size="12">Client JSON (5 values)</text>
+            <line x1="160" y1="44" x2="300" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow3)"></line>
+            <rect x="300" y="10" rx="6" ry="6" width="200" height="80" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="320" y="40" fill="#9da5b4" font-size="12">Normalize → Model.predict()</text>
+            <text x="320" y="60" fill="#9da5b4" font-size="12">Denormalize → Response</text>
+            <line x1="500" y1="44" x2="700" y2="44" stroke="#4fd1c5" stroke-width="2" marker-end="url(#arrow3)"></line>
+            <rect x="700" y="20" rx="6" ry="6" width="80" height="48" fill="#141821" stroke="rgba(255,255,255,0.03)"></rect>
+            <text x="712" y="50" fill="#9da5b4" font-size="12">Response</text>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ROUTES -->
+    <section id="routes" class="card" style="margin-top:14px">
+      <h2 class="section-title">Routes — Quick Reference</h2>
+      <p class="lead">All endpoints are registered in <code>main.py</code> with modular routers. Use OpenAPI at <code>/docs</code> or ReDoc at <code>/redoc</code> for interactive docs in development.</p>
+
+      <div style="margin-top:8px" class="route-list">
+        <div class="route">
+          <div class="left"><div class="method">GET</div><div class="path">/</div><div style="margin-left:8px;color:var(--muted)">Welcome</div></div>
+          <div class="tag">Health</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">GET</div><div class="path">/health</div><div style="margin-left:8px;color:var(--muted)">Service health</div></div>
+          <div class="tag">Health</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">POST</div><div class="path">/csv/upload</div><div style="margin-left:8px;color:var(--muted)">Upload CSV</div></div>
+          <div class="tag">CSV Analyzer</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">POST</div><div class="path">/sentiment/analyze</div><div style="margin-left:8px;color:var(--muted)">Analyze text</div></div>
+          <div class="tag">NLP</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">POST</div><div class="path">/series/predict</div><div style="margin-left:8px;color:var(--muted)">Predict next</div></div>
+          <div class="tag">Algorithms</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">POST</div><div class="path">/animal/classify</div><div style="margin-left:8px;color:var(--muted)">Image classify</div></div>
+          <div class="tag">Vision</div>
+        </div>
+        <div class="route">
+          <div class="left"><div class="method">POST</div><div class="path">/stock/predict</div><div style="margin-left:8px;color:var(--muted)">Next day price</div></div>
+          <div class="tag">Forecast</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTEGRATION -->
+    <section id="integration" class="card" style="margin-top:14px">
+      <h2 class="section-title">Integration Examples</h2>
+      <p class="lead">Replace <code>https://your-app.onrender.com</code> with your deployed URL or <code>http://127.0.0.1:8000</code> during local testing. Each code block includes a copy button.</p>
+
+      <!-- cURL -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">cURL — Stock Predictor</h3>
+        <div class="code" data-code><pre>curl -X POST https://your-app.onrender.com/stock/predict \
+  -H "Content-Type: application/json" \
+  -d '{"previous_prices": [1580,1590,1605,1612,1601]}'</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- Java -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Java (HttpClient) — Stock Predictor</h3>
+        <div class="code" data-code><pre>import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+String json = "{\"previous_prices\":[1580,1590,1605,1612,1601]}";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest req = HttpRequest.newBuilder()
+    .uri(URI.create("https://your-app.onrender.com/stock/predict"))
+    .header("Content-Type","application/json")
+    .POST(HttpRequest.BodyPublishers.ofString(json))
+    .build();
+
+HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+System.out.println(res.body());</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- Python -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Python (requests)</h3>
+        <div class="code" data-code><pre>import requests
+
+url = "https://your-app.onrender.com/stock/predict"
+payload = {"previous_prices":[1580,1590,1605,1612,1601]}
+r = requests.post(url, json=payload)
+print(r.status_code, r.json())</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- JavaScript -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">JavaScript (fetch)</h3>
+        <div class="code" data-code><pre>const payload = { previous_prices: [1580,1590,1605,1612,1601] };
+
+fetch("https://your-app.onrender.com/stock/predict", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+})
+.then(r => r.json())
+.then(console.log)
+.catch(console.error);</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- Flutter / Dart -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Flutter / Dart (http)</h3>
+        <div class="code" data-code><pre>import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+final url = Uri.parse('https://your-app.onrender.com/stock/predict');
+final payload = jsonEncode({'previous_prices':[1580,1590,1605,1612,1601]});
+
+final res = await http.post(url, headers: {'Content-Type':'application/json'}, body: payload);
+print(res.statusCode);
+print(res.body);</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- C# -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">C# (.NET HttpClient)</h3>
+        <div class="code" data-code><pre>using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+var client = new HttpClient();
+var json = "{\"previous_prices\":[1580,1590,1605,1612,1601]}";
+var content = new StringContent(json, Encoding.UTF8, "application/json");
+var res = await client.PostAsync("https://your-app.onrender.com/stock/predict", content);
+var body = await res.Content.ReadAsStringAsync();
+Console.WriteLine(body);</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <!-- Sentiment example -->
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">JavaScript — Sentiment</h3>
+        <div class="code" data-code><pre>fetch("https://your-app.onrender.com/sentiment/analyze", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: "I love this API" })
+})
+.then(r => r.json()).then(console.log);</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <strong>Live testing</strong>
+        <p style="color:var(--muted);margin-top:6px">Use the built-in OpenAPI/Swagger UI for live testing of endpoints: <code>/docs</code>. For an alternative rendering use: <code>/redoc</code>. The OpenAPI schema is available at <code>/openapi.json</code>.</p>
+      </div>
+
+    </section>
+
+    <!-- ERROR REFERENCE -->
+    <section id="errors" class="card" style="margin-top:14px">
+      <h2 class="section-title">Error Reference</h2>
+      <p class="lead">Common error responses and their meaning so integrators can handle them properly.</p>
+
+      <table class="error-table" aria-describedby="error-reference">
+        <thead>
+          <tr><th>Status</th><th>Error Body Example</th><th>Meaning / When it happens</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>400</td>
+            <td><code>{"detail":"Send exactly 5 previous close prices"}</code></td>
+            <td>Bad request — validation for required shape/length failed (e.g., wrong array length for stock predictor).</td>
+          </tr>
+          <tr>
+            <td>422</td>
+            <td><code>{"detail":[{...validation errors...}]}</code></td>
+            <td>FastAPI/Pydantic validation error — type mismatch or missing field in request body.</td>
+          </tr>
+          <tr>
+            <td>404</td>
+            <td><code>{"detail":"Not Found"}</code></td>
+            <td>Route missing or file not provided (e.g., missing multipart file).</td>
+          </tr>
+          <tr>
+            <td>500</td>
+            <td><code>{"detail":"Internal Server Error"}</code></td>
+            <td>Server-side error — model loading failure, unexpected exception. Check server logs.</td>
+          </tr>
+          <tr>
+            <td>429</td>
+            <td><code>{"detail":"Too Many Requests"}</code></td>
+            <td>Rate limiting by downstream APIs (e.g., yfinance) or proxy. Use exponential backoff or cached data.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- STOCK DEEP DIVE -->
+    <section id="stock" class="card" style="margin-top:14px">
+      <h2 class="section-title">Stock Predictor — Deep Dive</h2>
+      <p class="lead">Exact expectations, normalization math, retraining tips, and troubleshooting notes so integrators know how to prepare input data and what to expect from responses.</p>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="min-width:320px" class="card">
+          <h3 style="margin:0;color:var(--accent)">Model Loader</h3>
+          <p style="color:var(--muted);margin-top:8px">A lightweight loader module (e.g., <code>modules/stock_predictor/model_loader.py</code>) should:</p>
+          <ul style="color:var(--muted)">
+            <li>Load TensorFlow model with <code>tf.keras.models.load_model(path, compile=False)</code>.</li>
+            <li>Load normalization values: <code>min.npy</code> and <code>max.npy</code> (scalars saved by training script).</li>
+            <li>Provide a method <code>predict_next(previous_prices:list[float]) -> float</code> that normalizes input, runs inference, and denormalizes the output.</li>
+          </ul>
+        </div>
+
+        <div style="min-width:320px" class="card">
+          <h3 style="margin:0;color:var(--accent)">Normalization</h3>
+          <table class="meta" style="margin-top:8px">
+            <tr><th>Step</th><th>Formula</th></tr>
+            <tr><td>Normalize input</td><td><code>norm = (prices - min) / (max - min)</code></td></tr>
+            <tr><td>Model predict</td><td><code>p = model.predict(norm.reshape(1,-1))[0][0]</code></td></tr>
+            <tr><td>Denormalize</td><td><code>denorm = p * (max - min) + min</code></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Sample Request & Response</h3>
+        <div class="code" data-code><pre>POST /stock/predict
+Content-Type: application/json
+
+{
+  "previous_prices": [1580,1590,1605,1612,1601]
+}
+
+200 OK
+{
+  "next_day_prediction": 1607.4234
+}</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Retraining tips</h3>
+        <ul style="color:var(--muted);margin-top:8px">
+          <li>If you need predictions in a lower price range (e.g., 0–100), retrain with a synthetic dataset using <code>base_price</code> in that range.</li>
+          <li>Save <code>min.npy</code> and <code>max.npy</code> exactly as scalars; the loader expects these shapes.</li>
+          <li>Prefer CPU-only TensorFlow for small cloud instances; disable GPU compile with <code>compile=False</code>.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Common Errors & Fixes</h3>
+        <ul style="color:var(--muted);margin-top:8px">
+          <li><strong>400 Bad Request</strong> — Wrong input length. Ensure you send exactly 5 values (unless retrained).</li>
+          <li><strong>Model file not found</strong> — Ensure model files are in <code>modules/stock_predictor/model/</code> and committed to repo or available at runtime.</li>
+          <li><strong>Unrealistic predictions</strong> — Ensure the input scale matches training data; otherwise, retrain or rescale inputs.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GET STARTED -->
+    <section id="get-started" class="card" style="margin-top:14px">
+      <h2 class="section-title">Get Started — GitHub Repository</h2>
+      <p class="lead">Clone the repo, install dependencies, and run the app locally. The repository contains the full code and a training script to regenerate the stock model if needed.</p>
+
+      <div class="card" style="margin-top:8px">
+        <strong>Repository</strong><br>
+        <a href="https://github.com/poornachandra35/Multi-Service-API-with-FastAPI-Go-Machine-Learning" target="_blank" style="color:var(--accent);text-decoration:none">
+          https://github.com/poornachandra35/Multi-Service-API-with-FastAPI-Go-Machine-Learning
+        </a>
+      </div>
+
+      <div style="margin-top:12px">
+        <h3 style="margin:0;color:var(--accent)">Quick start (local)</h3>
+        <div class="code" data-code><pre># Clone the repository
+git clone https://github.com/poornachandra35/Multi-Service-API-with-FastAPI-Go-Machine-Learning.git
+cd Multi-Service-API-with-FastAPI-Go-Machine-Learning
+
+# (Optional) create virtual environment
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# macOS / Linux:
+# source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Ensure models exist:
+ls modules/stock_predictor/model/
+
+# Run app
+uvicorn main:app --reload --host 127.0.0.1 --port 8000</pre>
+          <button class="copy-btn" data-copy>Copy</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h3 style="margin:0;color:var(--accent)">Notes for contributors</h3>
+        <ul style="color:var(--muted);margin-top:8px">
+          <li>Create feature branches and open pull requests against <code>main</code>.</li>
+          <li>Include tests for core logic (series predictor heuristics, model loader) where possible.</li>
+          <li>Document any changes to input/output contracts in this guide.</li>
+        </ul>
+      </div>
+    </section>
+
+   <section id="faq" class="card full" style="margin-top:14px">
+  <h2 class="section-title">FAQ & Best Practices</h2>
+  <p class="lead">Common questions for developers integrating the Multi-Service API, along with best practices for stable usage, error handling, and performance.</p>
+
+  <div style="display:flex;flex-direction:column;gap:14px;margin-top:10px">
+
+    <!-- FAQ: 1 -->
+    <div class="card">
+      <strong>1. What is the recommended method to call the API?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        You can call the API using any HTTP client: JavaScript <code>fetch</code>, Python <code>requests</code>, Java <code>HttpClient</code>, C#, Flutter, or cURL.
+        Always set <code>Content-Type: application/json</code> for JSON-based endpoints.
+      </p>
+    </div>
+
+    <!-- FAQ: 2 -->
+    <div class="card">
+      <strong>2. Do I need an API key?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        Currently, no API key is required. However, in production you should implement authentication if exposing the service publicly.
+      </p>
+    </div>
+
+    <!-- FAQ: 3 -->
+    <div class="card">
+      <strong>3. What happens if I send invalid or missing fields?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        The API returns a structured FastAPI validation error message with HTTP 422 or 400.
+        Always validate request data before calling the API.
+      </p>
+    </div>
+
+    <!-- FAQ: 4 -->
+    <div class="card">
+      <strong>4. Why does the stock predictor require exactly 5 values?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        The model was trained with a fixed input window of 5 previous closing prices. If your use case requires a different window size, the model must be retrained by the project maintainer.
+        Users cannot modify the backend or upload their own models.
+      </p>
+    </div>
+
+    <!-- FAQ: 5 -->
+    <div class="card">
+      <strong>5. Why is my stock prediction unrealistic?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        The model expects values in the same price range it was trained on. If you send values far outside that range, the prediction may not make sense. Try normalizing your inputs or using realistic values.
+      </p>
+    </div>
+
+    <!-- FAQ: 6 -->
+    <div class="card">
+      <strong>6. How big can my CSV upload be?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        CSV uploads depend on server limits. For best performance, keep CSV files under 20 MB. For extremely large files, consider chunking or using streaming pipelines.
+      </p>
+    </div>
+
+    <!-- FAQ: 7 -->
+    <div class="card">
+      <strong>7. I get a CORS error in frontend. What should I do?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        CORS is enabled for all origins in the backend (<code>allow_origins=["*"]</code>). If your app blocks requests, ensure your browser or framework isn't overriding CORS rules.
+      </p>
+    </div>
+
+    <!-- FAQ: 8 -->
+    <div class="card">
+      <strong>8. Can I integrate this API with React, Angular, Vue, or Flutter?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        Yes. The API uses simple JSON responses, so it integrates smoothly with any frontend or mobile framework. See integration examples in the section above.
+      </p>
+    </div>
+
+    <!-- FAQ: 9 -->
+    <div class="card">
+      <strong>9. Does the Sentiment Analyzer support languages other than English?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        The default model is trained primarily on English. For multilingual support, the backend maintainer must load a multilingual transformer model.
+      </p>
+    </div>
+
+    <!-- FAQ: 10 -->
+    <div class="card">
+      <strong>10. What image formats work for the Animal Classifier?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        JPG, JPEG, and PNG are fully supported. The file must be provided via <code>multipart/form-data</code> with the field name <code>image</code>.
+      </p>
+    </div>
+
+    <!-- FAQ: 11 -->
+    <div class="card">
+      <strong>11. What status codes does the API use?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        <ul style="color:var(--muted);margin-top:4px">
+          <li><strong>200</strong> – Success</li>
+          <li><strong>400</strong> – Bad request (invalid input format)</li>
+          <li><strong>404</strong> – File missing or incorrect route</li>
+          <li><strong>422</strong> – Validation error</li>
+          <li><strong>500</strong> – Internal server error</li>
+        </ul>
+      </p>
+    </div>
+
+    <!-- FAQ: 12 -->
+    <div class="card">
+      <strong>12. Can I use this API in a production app?</strong>
+      <p style="color:var(--muted);margin-top:8px">
+        Yes. The API is modular and production-ready, but high traffic deployments should include:
+        rate limiting, caching, logging, and authentication.
+      </p>
+    </div>
+
+    <!-- BEST PRACTICES -->
+    <div class="card" style="margin-top:12px">
+      <h3 style="margin:0;color:var(--accent)">Best Practices for Developers</h3>
+      <ul style="color:var(--muted);margin-top:8px">
+        <li>Validate user inputs before sending requests.</li>
+        <li>Use async HTTP clients where possible for better performance.</li>
+        <li>Cache repeated requests (e.g., identical sentiment analysis queries).</li>
+        <li>Retry on network failures with exponential backoff.</li>
+        <li>Handle all HTTP errors gracefully in your UI.</li>
+        <li>Upload clean, well-formatted CSV files for best results.</li>
+        <li>Compress images before sending them to Animal Classifier.</li>
+        <li>Do not spam endpoints — follow good API hygiene.</li>
+      </ul>
+    </div>
+
+    <footer style="margin-top:18px;color:var(--muted);font-size:13px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>For support, bug reports, or integration assistance, please contact the API team or open an issue in the GitHub repository.</div>
+        <div>Last updated: Nov 27, 2025</div>
+      </div>
+    </footer>
+
+  </div>
+</section>
+
+
+  <script>
+    // Copy button logic
+    document.querySelectorAll('.code').forEach(block => {
+      const btn = block.querySelector('[data-copy]');
+      if(!btn) return;
+      btn.addEventListener('click', async () => {
+        const pre = block.querySelector('pre');
+        if(!pre) return;
+        try {
+          await navigator.clipboard.writeText(pre.innerText);
+          btn.textContent = 'Copied ✓';
+          setTimeout(()=> btn.textContent = 'Copy',1600);
+        } catch (e) {
+          // fallback
+          const range = document.createRange();
+          range.selectNodeContents(pre);
+          const sel = window.getSelection();
+          sel.removeAllRanges(); sel.addRange(range);
+          try { document.execCommand('copy'); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Copy',1600); } catch(err){ alert('Copy failed — select text and press Ctrl+C'); }
+        }
+      });
+    });
+
+    // Double-click to select code
+    document.querySelectorAll('.code pre').forEach(pre => {
+      pre.addEventListener('dblclick', () => {
+        const range = document.createRange();
+        range.selectNodeContents(pre);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+    });
+
+    // PDF Download (prints page)
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+      // Optionally adjust layout before print (could hide interactive elements)
+      window.print();
+    });
+  </script>
+</body>
+</html>

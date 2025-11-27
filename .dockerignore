@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+dataset/
+model_cache/
+*.h5
+*.pickle
+*.pkl
+.env
